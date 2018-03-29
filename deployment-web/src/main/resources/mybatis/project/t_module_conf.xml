@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 这里namespace必须是接口的路径，不然要运行的时候要报错 “is not known to the MapperRegistry” -->
+<mapper namespace="com.ibeiliao.deployment.admin.dao.project.ModuleConfDao">
+
+	<!-- 新增 -->
+	<insert id="insert" parameterType="com.ibeiliao.deployment.admin.po.project.ModuleConfPO" useGeneratedKeys="false" >
+		insert into t_module_conf (module_id,conf_type,conf_value,create_time,update_time) values (#{moduleId},#{confType},#{confValue},#{createTime},#{updateTime})
+	</insert>
+
+	<!-- 更新 -->
+	<update id="update" parameterType="com.ibeiliao.deployment.admin.po.project.ModuleConfPO">
+		update t_module_conf set conf_value=#{confValue},update_time=#{updateTime} where conf_type=#{confType} and module_id=#{moduleId}
+	</update>
+
+	<!-- 根据主键读取记录（主键可能有多个） -->
+	<select id="get" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.project.ModuleConfPO">
+		SELECT * FROM t_module_conf WHERE conf_type=#{confType} AND module_id=#{moduleId}
+	</select>
+
+	<!-- 根据主键读取记录（主键可能有多个） -->
+	<select id="getByTypeAndValue" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.project.ModuleConfPO">
+		SELECT * FROM t_module_conf WHERE conf_type=#{confType} AND (conf_value like #{httpPort} OR conf_value like #{serverPort} OR conf_value like #{watchDogPort})
+	</select>
+
+</mapper>

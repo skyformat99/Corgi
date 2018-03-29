@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 这里namespace必须是接口的路径，不然要运行的时候要报错 “is not known to the MapperRegistry” -->
+<mapper namespace="com.ibeiliao.deployment.admin.dao.server.ServerGroupDao">
+
+    <!-- 新增 -->
+    <insert id="insert" parameterType="com.ibeiliao.deployment.admin.po.server.ServerGroupPO" useGeneratedKeys="true" keyProperty="groupId">
+		insert into t_server_group (group_id,group_name,create_time,env_id,module_id)
+		values (#{groupId},#{groupName},now(),#{envId},#{moduleId})
+	</insert>
+
+    <!-- 更新 -->
+    <update id="update" parameterType="com.ibeiliao.deployment.admin.po.server.ServerGroupPO">
+		update t_server_group
+		set group_name=#{group.groupName},env_id=#{group.envId}
+		where group_id=#{group.groupId}
+	</update>
+
+
+    <!-- 根据主键或复合主键查询数据 -->
+    <select id="get" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.server.ServerGroupPO">
+		 select * from t_server_group
+		 where group_id=#{groupId}
+	</select>
+
+
+    <select id="getByModuleId" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.server.ServerGroupPO">
+		 select * from t_server_group
+		 where module_id=#{moduleId}
+	</select>
+
+    <select id="getByModuleIds" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.server.ServerGroupPO">
+		 select * from t_server_group
+		 where module_id IN
+		 <foreach item="item" index="index" collection="moduleIds" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+
+    <!-- 批量插入 -->
+    <insert id="batchInsert" useGeneratedKeys="true" >
+        insert into t_server_group (group_id,group_name,create_time,env_id,module_id)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.groupId},#{item.groupName},#{item.createTime},#{item.envId},#{item.moduleId})
+        </foreach>
+    </insert>
+
+    <select id="getByModuleAndEnv" parameterType="Map"
+            resultType="com.ibeiliao.deployment.admin.po.server.ServerGroupPO">
+		select * from t_server_group
+		where module_id=#{moduleId} and env_id=#{envId}
+	</select>
+
+	<!-- 删除 -->
+	<delete id="deleteByModuleId" parameterType="Map">
+		DELETE from t_server_group where module_id=#{moduleId}
+	</delete>
+
+	<delete id="deleteByModuleIdAndOldGroupIds" parameterType="Map">
+		DELETE from t_server_group where module_id=#{moduleId} AND group_id not IN
+		<foreach item="item" index="index" collection="groupIds" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+</mapper>

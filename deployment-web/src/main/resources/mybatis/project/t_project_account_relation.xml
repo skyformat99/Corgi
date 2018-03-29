@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 这里namespace必须是接口的路径，不然要运行的时候要报错 “is not known to the MapperRegistry” -->
+<mapper namespace="com.ibeiliao.deployment.admin.dao.project.ProjectAccountRelationDao">
+
+	<!-- 新增 -->
+	<insert id="insert" parameterType="com.ibeiliao.deployment.admin.po.project.ProjectAccountRelationPO" useGeneratedKeys="false" >
+		insert into t_project_account_relation (project_id,account_id,is_admin) values (#{projectId},#{accountId},#{isAdmin})
+	</insert>
+
+	<!-- 更新 -->
+	<update id="update" parameterType="com.ibeiliao.deployment.admin.po.project.ProjectAccountRelationPO">
+		update t_project_account_relation set is_admin=#{isAdmin} where account_id=#{accountId} and project_id=#{projectId}
+	</update>
+
+	<!-- 根据主键读取记录（主键可能有多个） -->
+	<select id="get" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.project.ProjectAccountRelationPO">
+		SELECT * FROM t_project_account_relation WHERE account_id=#{accountId} AND project_id=#{projectId}
+	</select>
+
+	<insert id="batchInsertRelation" parameterType="java.util.List" >
+		insert into t_project_account_relation (project_id,account_id,is_admin)
+		values
+		<foreach collection="relations" item="item" index="index" separator=",">
+			(#{item.projectId},#{item.accountId},#{item.isAdmin})
+		</foreach>
+	</insert>
+
+	<select id="deleteByProjectId" parameterType="java.lang.Integer" >
+		DELETE FROM t_project_account_relation WHERE project_id=#{projectId}
+	</select>
+
+
+	<select id="getByProjectId" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.project.ProjectAccountRelationPO">
+		SELECT * FROM t_project_account_relation WHERE project_id=#{projectId}
+	</select>
+
+	<select id="getByProjectIdAndAccountId" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.project.ProjectAccountRelationPO">
+		SELECT * FROM t_project_account_relation WHERE project_id=#{projectId} and account_id=#{accountId}
+	</select>
+
+	<select id="getByAccountId" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.project.ProjectAccountRelationPO">
+		SELECT * FROM t_project_account_relation WHERE  account_id=#{accountId}
+	</select>
+
+	<select id="getAllAdminId" parameterType="Map" resultType="java.lang.Long">
+		SELECT DISTINCT account_id FROM t_project_account_relation  WHERE is_admin=1
+	</select>
+
+
+	<select id="getByProjectIds" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.project.ProjectAccountRelationPO">
+		SELECT * FROM t_project_account_relation WHERE project_id IN
+		<foreach item="item" index="index" collection="projectIds" open="(" separator="," close=")">
+			#{item}
+		 </foreach>
+	</select>
+</mapper>

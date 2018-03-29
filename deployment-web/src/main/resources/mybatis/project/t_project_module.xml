@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 这里namespace必须是接口的路径，不然要运行的时候要报错 “is not known to the MapperRegistry” -->
+<mapper namespace="com.ibeiliao.deployment.admin.dao.project.ProjectModuleDao">
+
+	<!-- 新增 -->
+	<insert id="insert" parameterType="com.ibeiliao.deployment.admin.po.project.ProjectModulePO" useGeneratedKeys="true" keyProperty="moduleId">
+		insert into t_project_module (module_id,module_name_zh,module_name,module_type,src_path,pre_shell,post_shell,log_name,repo_type,repo_url,create_time,compile_shell,stop_shell,restart_shell,project_id,need_audit,svn_account,svn_password) values (#{moduleId},#{moduleNameZh},#{moduleName},#{moduleType},#{srcPath},#{preShell},#{postShell},#{logName},#{repoType},#{repoUrl},#{createTime},#{compileShell},#{stopShell},#{restartShell},#{projectId},#{needAudit},#{svnAccount},#{svnPassword})
+	</insert>
+
+	<!-- 更新 -->
+	<update id="update" parameterType="com.ibeiliao.deployment.admin.po.project.ProjectModulePO">
+		update t_project_module set module_name_zh=#{moduleNameZh},module_name=#{moduleName},module_type=#{moduleType},src_path=#{srcPath},pre_shell=#{preShell},post_shell=#{postShell},log_name=#{logName},repo_type=#{repoType},repo_url=#{repoUrl},compile_shell=#{compileShell},stop_shell=#{stopShell},restart_shell=#{restartShell},project_id=#{projectId},need_audit=#{needAudit},svn_account=#{svnAccount},svn_password=#{svnPassword} where module_id=#{moduleId}
+	</update>
+
+	<!-- 删除 -->
+	<update id="deleteModule" parameterType="com.ibeiliao.deployment.admin.po.project.ProjectModulePO">
+		DELETE from t_project_module where module_id=#{moduleId}
+	</update>
+
+	<!-- 根据主键读取记录（主键可能有多个） -->
+	<select id="get" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.project.ProjectModulePO">
+		SELECT * FROM t_project_module WHERE module_id=#{moduleId}
+	</select>
+
+	<!-- 根据主键读取记录（主键可能有多个） -->
+	<select id="getByModuleIds" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.project.ProjectModulePO">
+		SELECT * FROM t_project_module WHERE module_id IN
+		<foreach item="item" index="index" collection="moduleIds" open="(" separator="," close=")">
+			#{item}
+		 </foreach>
+	</select>
+
+	<select id="getByProjectIds" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.project.ProjectModulePO">
+		SELECT * FROM t_project_module WHERE project_id IN
+		<foreach item="item" index="index" collection="projectIds" open="(" separator="," close=")">
+			#{item}
+		 </foreach>
+	</select>
+
+	<!-- 根据主键读取记录（主键可能有多个） -->
+	<select id="getByProjectId" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.project.ProjectModulePO">
+		SELECT * FROM t_project_module WHERE project_id=#{projectId}
+	</select>
+
+</mapper>

@@ -1,0 +1,112 @@
+<!--
+   - Resin 4.0 configuration file.
+  -->
+<resin xmlns="http://caucho.com/ns/resin"
+       xmlns:resin="urn:java:com.caucho.resin">
+
+    <!-- property-based Resin configuration -->
+    <resin:properties path="${__DIR__}/resin.properties" optional="true"/>
+
+    <resin:if test="${properties_import_url}">
+        <resin:properties path="${properties_import_url}"
+                          optional="true" recover="true"/>
+    </resin:if>
+
+    ${RESIN_LOG}
+
+    <!-- Logging configuration for the JDK logging API -->
+    <log-handler name="" level="all" path="stdout:" timestamp="[%Y-%m-%d %H:%M:%S.%s]"
+                 format=" [${log.level}] [resin] [${log.name}] [${log.sourceMethodName}] ${log.message}"/>
+
+    <!--
+       - level='info' for production
+       - 'fine' or 'finer' for development and troubleshooting
+      -->
+    <logger name="" level="${log_level?:'info'}"/>
+
+    <logger name="com.caucho.java" level="config"/>
+    <logger name="com.caucho.loader" level="config"/>
+
+    <!--
+       - Default configuration applied to all clusters, including
+       - HTTP, HTTPS, and /resin-admin configuration.
+      -->
+    <resin:import path="${__DIR__}/cluster-default.xml"/>
+
+    <!--
+       - Remote management requires at least one enabled admin user.
+      -->
+    <resin:AdminAuthenticator>
+        <user name="${admin_user}" password="${admin_password}"/>
+        <resin:import path="${__DIR__}/admin-users.xml" optional="true"/>
+    </resin:AdminAuthenticator>
+
+    <!--
+       - For clustered systems, create a password in as cluster_system_key
+      -->
+    <cluster-system-key>${cluster_system_key}</cluster-system-key>
+
+    <!--
+       - For production sites, change dependency-check-interval to something
+       - like 600s, so it only checks for updates every 10 minutes.
+      -->
+    <dependency-check-interval>0</dependency-check-interval>
+
+    <!-- For resin.properties dynamic cluster joining -->
+    <home-cluster>${home_cluster}</home-cluster>
+    <home-server>${home_server}</home-server>
+    <elastic-server>${elastic_server}</elastic-server>
+    <elastic-dns>${elastic_dns}</elastic-dns>
+
+    <!--
+       - Configures the main application cluster.  Load-balancing configurations
+       - will also have a web cluster.
+      -->
+    <cluster id="app">
+        <server-default>
+            ${JVM_ARGS}
+        </server-default>
+        <server id="${SERVER_ID}" address="127.0.0.1" port="${SERVER_PORT}">
+            <watchdog-port>${WATCHDOG_PORT}</watchdog-port>
+            <http address="*" port="${HTTP_PORT}"/>
+        </server>
+
+        <host-default>
+            <!-- creates the webapps directory for .war expansion -->
+            <web-app-deploy path="webapps"
+                            expand-preserve-fileset="WEB-INF/work/**"
+                            multiversion-routing="${webapp_multiversion_routing}"
+                            path-suffix="${elastic_webapp?resin.id:''}"/>
+        </host-default>
+
+        <!-- auto virtual host deployment in hosts/foo.example.com/webapps -->
+        <host-deploy path="hosts">
+            <host-default>
+                <resin:import path="host.xml" optional="true"/>
+            </host-default>
+        </host-deploy>
+        <!-- the default host, matching any host name -->
+        <host id="${HOST_NAME}" root-directory=".">
+            <!--
+               - webapps can be overridden/extended in the resin.xml
+              -->
+            <host-name>${HOST_NAME}</host-name>
+            ${HOST_ALIAS}
+            <web-app id="/" document-directory="${DOCUMENT_DIR}"
+                     archive-path="${ARCHIVE_PATH}" redeploy-mode="manual"/>
+            <!--access-log-->
+            <access-log path="${ACCESS_LOG_FILE}" archive-format="access.log.%Y-%m-%d.gz">
+              <rollover-period>1D</rollover-period>
+            </access-log>
+        </host>
+
+
+        <resin:if test="${resin_doc}">
+            <host id="${resin_doc_host}" root-directory="${resin_doc_host}">
+                <web-app id="/resin-doc" root-directory="${resin.root}/doc/resin-doc"/>
+            </host>
+        </resin:if>
+    </cluster>
+
+</resin>
+

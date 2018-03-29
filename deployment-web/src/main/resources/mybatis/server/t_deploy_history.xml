@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 这里namespace必须是接口的路径，不然要运行的时候要报错 “is not known to the MapperRegistry” -->
+<mapper namespace="com.ibeiliao.deployment.admin.dao.deploy.DeployHistoryDao">
+
+	<!-- 审核 -->
+	<update id="auditDeploy" parameterType="Map">
+		UPDATE t_deploy_history
+		SET auditor_id=#{accountId}, audit_time=#{auditTime}, deploy_status=#{newStatus}
+		WHERE history_id=#{historyId} AND deploy_status=#{oldStatus}
+	</update>
+
+    <!-- 新增 -->
+	<insert id="insert" parameterType="com.ibeiliao.deployment.admin.po.deploy.DeployHistoryPO" useGeneratedKeys="true" keyProperty="historyId">
+		insert into t_deploy_history (history_id,title,create_time,account_id,deploy_time,result,audit_time,auditor_id,tag_name,version_no,is_restart,is_rollback,rollback_to_deploy_id,module_id,module_name,env_id,project_id,deploy_servers,success_count,concurrent_server_percentage,deploy_time_interval,real_name,force_compile,deploy_status,server_strategy)
+		values (#{historyId},#{title},#{createTime},#{accountId},#{deployTime},#{result},#{auditTime},#{auditorId},#{tagName},#{versionNo},#{isRestart},#{isRollback},#{rollbackToDeployId},#{moduleId},#{moduleName},#{envId},#{projectId},#{deployServers},#{successCount},#{concurrentServerPercentage},#{deployTimeInterval},#{realName},#{forceCompile},#{deployStatus},${serverStrategy})
+	</insert>
+
+	<!-- 根据主键或复合主键查询数据 -->
+	<select id="get" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.deploy.DeployHistoryPO">
+		SELECT * FROM t_deploy_history
+		WHERE history_id=#{historyId}
+	</select>
+
+	<!-- 查询当前用户可以看的发布记录 -->
+	<select id="queryByAccountId" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.deploy.DeployHistoryPO">
+		SELECT h.*
+        FROM t_deploy_history h
+        INNER JOIN t_project_account_relation pcr ON h.project_id=pcr.project_id
+        WHERE pcr.account_id=#{accountId}
+        <if test="envId != null and envId > 0">
+			AND h.env_id=#{envId}
+		</if>
+        <if test="projectId != null and projectId > 0">
+			AND h.project_id=#{projectId}
+		</if>
+		<if test="moduleId != null and moduleId > 0">
+			AND module_id=#{moduleId}
+		</if>
+
+		ORDER BY h.create_time desc limit #{startIndex}, #{limit}
+	</select>
+
+	<!-- 查询发布记录 -->
+	<select id="query" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.deploy.DeployHistoryPO">
+		SELECT *
+		FROM t_deploy_history
+		WHERE 1=1
+		<if test="envId != null and envId > 0">
+			AND env_id=#{envId}
+		</if>
+		<if test="projectId != null and projectId > 0">
+			AND project_id=#{projectId}
+		</if>
+		<if test="moduleId != null and moduleId > 0">
+			AND module_id=#{moduleId}
+		</if>
+
+		ORDER BY create_time desc limit #{startIndex}, #{limit}
+	</select>
+
+	<select id="queryByModuleId" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.deploy.DeployHistoryPO">
+		SELECT *
+		FROM t_deploy_history
+		WHERE 1=1
+		<if test="envId != null and envId > 0">
+			AND env_id=#{envId}
+		</if>
+		<if test="moduleId != null and moduleId > 0">
+			AND module_id=#{moduleId}
+		</if>
+
+		ORDER BY create_time desc limit #{startIndex}, #{limit}
+	</select>
+
+	<!-- 更新状态 -->
+	<update id="updateStatus" parameterType="Map">
+		UPDATE t_deploy_history
+		SET deploy_status=#{newStatus}
+		WHERE history_id=#{historyId} AND deploy_status=#{oldStatus}
+	</update>
+
+	<!-- 发布完成后更新结果 -->
+	<update id="updateResultAndStatus" parameterType="Map">
+		UPDATE t_deploy_history
+		SET
+			result=#{result},
+			deploy_servers=#{deployServers},
+			success_count=#{successCount},
+			deploy_status=#{newStatus},
+			deploy_time=now()
+		WHERE history_id=#{historyId} AND deploy_status=#{oldStatus}
+	</update>
+
+	<select id="queryByTimeAndStatus" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.deploy.DeployHistoryPO">
+		<![CDATA[
+		SELECT * FROM t_deploy_history WHERE create_time>=#{startTime} AND create_time<=#{endTime} AND deploy_status=#{status} ORDER BY create_time ASC limit #{startIndex},#{limit}
+		]]>
+	</select>
+
+	<!-- 统计每个项目的数据 -->
+	<select id="statProject" parameterType="Map" resultType="com.ibeiliao.deployment.admin.vo.stat.StatProjectResult">
+		<![CDATA[
+		SELECT
+			project_id, env_id, result, count(*) as num
+		FROM
+			t_deploy_history
+		WHERE
+			deploy_time >=#{startTime} AND deploy_time <=#{endTime} AND deploy_status=#{status} AND is_restart=0
+		GROUP BY
+			project_id, env_id, result
+		]]>
+	</select>
+
+	<!-- 统计低质量模块，只统计成功的 -->
+	<select id="statLowQualityModule" parameterType="Map" resultType="com.ibeiliao.deployment.admin.vo.stat.LowQualityRank">
+		<![CDATA[
+		SELECT
+			module_id, count(*) as deploy_times
+		FROM
+			t_deploy_history
+		WHERE
+			deploy_time >=#{startTime} AND deploy_time <=#{endTime}
+			AND env_id in (#{env})
+			AND deploy_status=#{status} AND is_restart=0 AND result=#{result}
+		GROUP BY
+			module_id
+		HAVING deploy_times >= #{minDeployTimes}
+		ORDER BY deploy_times DESC limit 100
+		]]>
+	</select>
+</mapper>

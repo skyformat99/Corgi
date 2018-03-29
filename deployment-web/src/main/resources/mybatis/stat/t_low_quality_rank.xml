@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 这里namespace必须是接口的路径，不然要运行的时候要报错 “is not known to the MapperRegistry” -->
+<mapper namespace="com.ibeiliao.deployment.admin.dao.stat.LowQualityRankDao">
+
+	<!-- 批量插入数据 -->
+	<insert id="batchInsertOrUpdate" parameterType="java.util.List">
+		insert into t_low_quality_rank (stat_date,module_id,deploy_times) values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.statDate},#{item.moduleId},#{item.deployTimes})
+		</foreach>
+		ON DUPLICATE KEY UPDATE deploy_times=VALUES(deploy_times)
+	</insert>
+
+	<!-- 按日期范围查询 -->
+	<select id="queryByDate" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.stat.LowQualityRankPO">
+		<![CDATA[
+		SELECT r.module_id,m.module_name, sum(r.deploy_times) deploy_times FROM
+			t_low_quality_rank r
+		INNER JOIN
+			t_project_module m
+		ON
+			r.module_id=m.module_id
+		WHERE
+			stat_date>=#{startDate} AND stat_date<=#{endDate}
+		ORDER BY deploy_times DESC
+		]]>
+	</select>
+
+	<delete id="deleteByDate" parameterType="Map">
+		DELETE FROM t_low_quality_rank WHERE stat_date=#{date}
+	</delete>
+</mapper>

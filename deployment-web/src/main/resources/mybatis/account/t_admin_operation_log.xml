@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 这里namespace必须是接口的路径，不然要运行的时候要报错 “is not known to the MapperRegistry” -->
+<mapper namespace="com.ibeiliao.deployment.admin.dao.account.AdminOperationLogDao">
+
+	<!-- 新增 -->
+	<insert id="save" parameterType="com.ibeiliao.deployment.admin.po.account.AdminOperationLogPO" useGeneratedKeys="true" >
+		insert into t_admin_operation_log (uid,operation_type,arguments,result,create_time,ext1,ext2) values (#{uid},#{operationType},#{arguments},#{result},#{createTime},#{ext1},#{ext2})
+	</insert>
+
+</mapper>

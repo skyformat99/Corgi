@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:task="http://www.springframework.org/schema/task" xmlns:aop="http://www.springframework.org/schema/aop"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	  http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+	  http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+	  http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+	  http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+	<!-- 读取加密的properties -->
+	<bean id="aesPropertiesEncoder" class="com.ibeiliao.platform.util.cfg.AesPropertiesEncoder" />
+	<bean id="propertyConfigurer" class="com.ibeiliao.platform.util.cfg.EncryptionPropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:app.properties</value>
+			</list>
+		</property>
+		<property name="encoder" ref="aesPropertiesEncoder"/>
+	</bean>
+
+	<context:annotation-config />
+
+	<aop:aspectj-autoproxy proxy-target-class="false" />
+
+	<context:annotation-config />
+
+	<context:component-scan base-package="com.ibeiliao.deployment.admin" >
+		<!--<context:include-filter type="annotation" expression="org.springframework.stereotype.Service" />-->
+		<!--<context:include-filter type="annotation" expression="org.springframework.stereotype.Repository" />-->
+		<!--<context:include-filter type="annotation" expression="org.springframework.stereotype.Component" />-->
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+		<context:exclude-filter type="annotation" expression="org.springframework.context.annotation.Configuration" />
+		<context:exclude-filter type="annotation" expression="org.springframework.web.servlet.config.annotation.EnableWebMvc" />
+		<context:exclude-filter type="annotation" expression="org.springframework.web.socket.config.annotation.EnableWebSocket" />
+	</context:component-scan>
+
+
+
+	<!-- 配置_Druid和Spring关联监控配置 -->
+	<bean id="druid-stat-interceptor" class="com.alibaba.druid.support.spring.stat.DruidStatInterceptor">
+	</bean>
+	<bean id="druid-stat-pointcut" class="org.springframework.aop.support.JdkRegexpMethodPointcut" scope="prototype">
+		<property name="patterns">
+			<list>
+				<value>com.ibeiliao.deployment.admin.dao.*</value>
+			</list>
+		</property>
+	</bean>
+	<aop:config>
+		<aop:advisor advice-ref="druid-stat-interceptor" pointcut-ref="druid-stat-pointcut" />
+	</aop:config>
+
+	<import resource="classpath:/datasource.xml" />
+	<import resource="classpath:/redis.xml" />
+	<import resource="dubbo.xml" />
+
+	<!-- 线程池 -->
+	<bean id="threadPoolTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+		<property name="corePoolSize" value="${threadpool.corePoolSize}" />
+		<property name="maxPoolSize" value="${threadpool.maxPoolSize}" />
+		<property name="queueCapacity" value="${threadpool.queueCapacity}" />
+		<property name="keepAliveSeconds" value="${threadpool.threadpool}" />
+		<property name="rejectedExecutionHandler">
+			<bean class="java.util.concurrent.ThreadPoolExecutor$CallerRunsPolicy"   />
+		</property>
+	</bean>
+
+</beans>

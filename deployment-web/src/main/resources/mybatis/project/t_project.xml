@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 这里namespace必须是接口的路径，不然要运行的时候要报错 “is not known to the MapperRegistry” -->
+<mapper namespace="com.ibeiliao.deployment.admin.dao.project.ProjectDao">
+
+    <!-- 新增 -->
+    <insert id="insert" parameterType="com.ibeiliao.deployment.admin.po.project.ProjectPO" useGeneratedKeys="true"
+            keyProperty="projectId">
+		insert into t_project (project_id,project_name,manager_id,manager_name,manager_email,manager_phone,create_time,project_no,program_language) values (#{projectId},#{projectName},#{managerId},#{managerName},#{managerEmail},#{managerPhone},#{createTime},#{projectNo},#{programLanguage})
+	</insert>
+
+    <!-- 更新 -->
+    <update id="update" parameterType="com.ibeiliao.deployment.admin.po.project.ProjectPO">
+		update t_project set project_name=#{projectName},manager_id=#{managerId},manager_name=#{managerName},manager_email=#{managerEmail},manager_phone=#{managerPhone},project_no=#{projectNo},program_language=#{programLanguage} where project_id=#{projectId}
+	</update>
+
+    <!-- 根据主键读取记录（主键可能有多个） -->
+    <select id="get" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.project.ProjectPO">
+		SELECT * FROM t_project WHERE project_id=#{projectId}
+	</select>
+
+    <!-- 分页显示显示项目 -->
+    <select id="queryProject" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.project.ProjectPO">
+        SELECT * FROM t_project WHERE
+        1=1
+        <choose>
+            <when test="projectName != null and projectName != ''">
+                and project_name like #{projectName}
+            </when>
+        </choose>
+        <if test="programLanguage != null and programLanguage != ''">
+            AND program_language like #{programLanguage}
+        </if>
+        <if test="managerId >0">
+            AND manager_id like #{managerId}
+        </if>
+        <![CDATA[
+			ORDER BY project_Id DESC limit #{startIndex},#{limit}
+		]]>
+    </select>
+
+    <!-- 分页显示显示项目 -->
+    <select id="queryProjectWithManager" parameterType="Map"
+            resultType="com.ibeiliao.deployment.admin.po.project.ProjectPO">
+        SELECT p.* FROM t_project p
+        INNER JOIN t_project_account_relation par
+        ON p.project_id=par.project_id
+        WHERE
+        par.account_id=#{managerId} AND par.is_admin=1
+        <choose>
+            <when test="projectName != null and projectName != ''">
+                and p.project_name like #{projectName}
+            </when>
+        </choose>
+        <if test="programLanguage != null and programLanguage != ''">
+            AND p.program_language like #{programLanguage}
+        </if>
+        <![CDATA[
+			ORDER BY p.project_Id DESC limit #{startIndex},#{limit}
+		]]>
+    </select>
+
+    <!-- 查询管理员能发布的所有项目列表 linyi 2017/1/20 -->
+    <select id="queryAdminProjects" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.project.ProjectPO">
+        SELECT
+        p.*
+        FROM t_project p
+        INNER JOIN t_project_account_relation par
+        ON p.project_id=par.project_id
+        WHERE
+        par.account_id=${accountId}
+        <if test="projectName != null and projectName != ''">
+            AND p.project_name like #{projectName}
+        </if>
+        <if test="programLanguage != null and programLanguage != ''">
+            AND p.program_language like #{programLanguage}
+        </if>
+        <if test="managerId >0">
+            AND par.account_id=#{managerId} AND par.is_admin=1
+        </if>
+        ORDER BY p.project_Id DESC limit #{startIndex},#{limit}
+    </select>
+
+    <select id="getByProjectNo" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.project.ProjectPO">
+		SELECT * FROM t_project WHERE project_no=#{projectNo}
+	</select>
+
+    <select id="getByProjectIds" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.project.ProjectPO">
+        SELECT * FROM t_project WHERE project_id IN
+        <foreach item="item" index="index" collection="projectIds" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="getAllManagerIds" parameterType="Long" resultType="java.lang.Long">
+		SELECT DISTINCT manager_id from t_project
+	</select>
+
+    <select id="queryByAccountId" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.project.ProjectPO">
+		SELECT
+			p.*
+		FROM t_project p
+		INNER JOIN t_project_account_relation par
+		ON p.project_id=par.project_id
+		WHERE
+			par.account_id=${accountId}
+	</select>
+</mapper>

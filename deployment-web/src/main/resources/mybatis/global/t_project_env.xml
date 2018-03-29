@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 这里namespace必须是接口的路径，不然要运行的时候要报错 “is not known to the MapperRegistry” -->
+<mapper namespace="com.ibeiliao.deployment.admin.dao.global.ProjectEnvDao">
+
+	<!-- 新增 -->
+	<insert id="insert" parameterType="com.ibeiliao.deployment.admin.po.global.ProjectEnvPO" useGeneratedKeys="false" >
+		insert into t_project_env (env_id,env_name,online_flag) values (#{envId},#{envName},#{onlineFlag})
+	</insert>
+
+	<!-- 更新 -->
+	<update id="update" parameterType="com.ibeiliao.deployment.admin.po.global.ProjectEnvPO">
+		update t_project_env set env_name=#{envName},online_flag=#{onlineFlag} where env_id=#{envId}
+	</update>
+
+	<!-- 根据主键读取记录（主键可能有多个） -->
+	<select id="get" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.global.ProjectEnvPO">
+		SELECT * FROM t_project_env WHERE env_id=#{envId}
+	</select>
+
+	<select id="delete" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.global.ProjectEnvPO">
+		DELETE FROM t_project_env WHERE env_id=#{envId}
+	</select>
+
+	<!-- 分页显示显示环境 -->
+	<select id="listEnv" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.global.ProjectEnvPO">
+		SELECT * FROM t_project_env WHERE
+		<choose>
+			<when test="envName != null and envName != ''">
+				envName like #{envName} and
+			</when>
+		</choose>
+		<![CDATA[
+			1=1 order by env_id DESC limit #{startIndex},#{limit}
+		]]>
+	</select>
+
+	<!-- 查询环境总数 -->
+	<select id="findTotalCount" parameterType="Map" resultType="Integer">
+		SELECT count(*) FROM t_project_env WHERE 1=1
+		<choose>
+			<when test="envName != null and envName != ''">
+				and envName like #{envName} and
+			</when>
+		</choose>
+	</select>
+
+	<select id="findAllEnv" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.global.ProjectEnvPO">
+		SELECT * FROM t_project_env
+	</select>
+
+</mapper>

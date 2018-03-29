@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 这里namespace必须是接口的路径，不然要运行的时候要报错 “is not known to the MapperRegistry” -->
+<mapper namespace="com.ibeiliao.deployment.admin.dao.global.GlobalSettingDao">
+
+	<!-- 新增 -->
+	<insert id="insert" parameterType="com.ibeiliao.deployment.admin.po.global.GlobalSettingPO" useGeneratedKeys="false" >
+		insert into t_global_setting (setting_id,svn_checkout_dir,target_server_user,target_server_dir,idc) values (#{settingId},#{svnCheckoutDir},#{targetServerUser},#{targetServerDir},#{idc})
+	</insert>
+
+	<!-- 更新 -->
+	<update id="update" parameterType="com.ibeiliao.deployment.admin.po.global.GlobalSettingPO">
+		update t_global_setting set svn_checkout_dir=#{svnCheckoutDir},target_server_user=#{targetServerUser},target_server_dir=#{targetServerDir},idc=#{idc} where setting_id=#{settingId}
+	</update>
+
+	<!-- 根据主键读取记录（主键可能有多个） -->
+	<select id="get" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.global.GlobalSettingPO">
+		SELECT * FROM t_global_setting WHERE setting_id=#{settingId}
+	</select>
+
+	<select id="findAll" parameterType="Map" resultType="com.ibeiliao.deployment.admin.po.global.GlobalSettingPO">
+		SELECT * FROM t_global_setting
+	</select>
+
+</mapper>
