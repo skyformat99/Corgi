@@ -1,8 +1,6 @@
 Corgi
 =======
 
-[![Apache License 2](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/kevinYin/Corgi/blob/master/LICENSE)
-
 **一个适用于中小互联网企业的迷你版本发布系统**  
 更详细介绍请移步 贝聊 掘金专栏：https://juejin.im/post/5992b3386fb9a03c5c701fe6
 
